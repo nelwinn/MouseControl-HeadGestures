@@ -1,10 +1,10 @@
 import cv2
 import sys
-import menu
+import utils.menu as menu
 import json
 import time
 import threading
-import vkeyboard
+import utils.vkeyboard as vkeyboard
 import screeninfo
 from test import *
 import numpy as np
