@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sensitivity Adjustment</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
+
+      label {
+        font-weight: bold;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      #output {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Sensitivity Adjustment</h2>
+      <label for="sensitivity">Sensitivity Level:</label>
+      <input
+        type="range"
+        id="sensitivity"
+        name="sensitivity"
+        min="1"
+        max="30"
+        value="15"
+      />
+      <div id="sensitivityOutput">Current Sensitivity Level: 15</div>
+
+      <h2>Eye detection Adjustment</h2>
+      <p>Edit the below settings if eye controls are not working as expected</p>
+      <label for="leftEye">Left Eye Blink Sensitivity:</label>
+      <input
+        type="range"
+        id="leftEye"
+        name="leftEye"
+        min="12"
+        max="30"
+        value="15"
+      />
+      <div id="leftEyeRangeOutput">Current Sensitivity Level: 15</div>
+
+      <label for="rightEye">Right Eye Blink Sensitivity:</label>
+      <input
+        type="range"
+        id="rightEye"
+        name="rightEye"
+        min="12"
+        max="30"
+        value="15"
+      />
+      <div id="rightEyeRangeOutput">Current Sensitivity Level: 15</div>
+    </div>
+
+    <script src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
+    <script>
+      var sensitivityRange = document.getElementById("sensitivity");
+      var sensitivityOutput = document.getElementById("sensitivityOutput");
+
+      var leftEyeRange = document.getElementById("leftEye");
+      var leftEyeRangeOutput = document.getElementById("leftEyeRangeOutput");
+
+      var rightEyeRange = document.getElementById("rightEye");
+      var rightEyeRangeOutput = document.getElementById("rightEyeRangeOutput");
+
+      sensitivityRange.oninput = function () {
+        sensitivityOutput.textContent =
+          "Current Sensitivity Level: " + sensitivityRange.value;
+        var data = { value: sensitivityRange.value };
+        console.log(data);
+        fetch("http://127.0.0.1:5000/sensitivity", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Response received:", data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      };
+
+      leftEyeRange.oninput = function () {
+        leftEyeRangeOutput.textContent =
+          "Current Sensitivity Level: " + leftEyeRange.value;
+        var data = { value: leftEyeRange.value };
+        console.log(data);
+        fetch("http://127.0.0.1:5000/lefteye", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Response received:", data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      };
+
+      rightEyeRange.oninput = function () {
+        rightEyeRangeOutput.textContent =
+          "Current Sensitivity Level: " + rightEyeRange.value;
+        var data = { value: rightEyeRange.value };
+        console.log(data);
+        fetch("http://127.0.0.1:5000/righteye", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Response received:", data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      };
+    </script>
+  </body>
+</html>
