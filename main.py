@@ -25,7 +25,7 @@ mp_drawing = mp.solutions.drawing_utils
 wCam, hCam = 640, 480
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
 
@@ -114,6 +114,9 @@ while cap.isOpened():
 
                 left_eye = [face_landmarks.landmark[145],
                             face_landmarks.landmark[159]]
+                right_eye = [face_landmarks.landmark[374],
+                             face_landmarks.landmark[386]]
+
                 face_3d = np.array(face_3d, dtype=np.float64)
 
                 focal_length = 1 * img_w
@@ -143,19 +146,25 @@ while cap.isOpened():
                 # for landmark in left_eye:
                 #     x_ = int(landmark.x * img_w)
                 #     y_ = int(landmark.y * img_h)
+                right_clicked = False
+                if (right_eye[0].y - right_eye[1].y < 0.015):
+                    right_clicked = True
 
                 if (left_eye[0].y - left_eye[1].y < 0.015):
+                    if right_clicked:
+                        if frameRead > 8:
+                            frameRead = 0
+                            print("Double click")
+                            break
                     if frameRead > 8:
                         frameRead = 0
-                        print("Blinked")
                         last_blinks.append(True)
                         print(last_blinks[-20:])
                         if all(last_blinks[-4:]):
                             print("Blinnk and hold")
-                        elif last_blinks[-25:].count(True) >= 2:
-                            print("Double click")
                         else:
                             print("Single click")
+                            break
 
                 else:
                     last_blinks = last_blinks[-30:]
