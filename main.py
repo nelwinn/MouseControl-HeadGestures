@@ -33,11 +33,11 @@ prev_x, prev_y = 1, 1
 prev_pos = (0, 0)
 pyag.FAILSAFE = False
 frameR = 100
-smoothening = 17
+SMOOTHENING = 17  # SENSITIVITY
 wScr, hScr = monitors[0].width, monitors[0].height
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
-
+RIGHT_EYE_RATIO, LEFT_EYE_RATIO = 0.015, 0.015
 OPEN_KEYBOARD = False
 
 
@@ -65,7 +65,7 @@ def check_settings():
     """
     Reads settings.json to update config variables
     """
-    global READ_INPUT, OPEN_KEYBOARD
+    global READ_INPUT, OPEN_KEYBOARD, RIGHT_EYE_RATIO, LEFT_EYE_RATIO, SMOOTHENING
     while True:
         with open("settings.json") as file:
             s = file.read()
@@ -82,6 +82,9 @@ def check_settings():
                         OPEN_KEYBOARD = True
                 else:
                     OPEN_KEYBOARD = False
+                RIGHT_EYE_RATIO = float(s.get("righteye", 0.015))
+                LEFT_EYE_RATIO = float(s.get("righteye", 0.015))
+                SMOOTHENING = int(s.get("sensitivity", 17))
         time.sleep(2)
 
 
@@ -89,6 +92,7 @@ threading.Thread(target=check_settings).start()
 img_h, img_w = 480, 640
 single_blink = False
 last_blinks = []
+blink_and_hold = False
 while cap.isOpened():
     success, image = cap.read()
     image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
@@ -147,36 +151,48 @@ while cap.isOpened():
                 #     x_ = int(landmark.x * img_w)
                 #     y_ = int(landmark.y * img_h)
                 right_clicked = False
-                if (right_eye[0].y - right_eye[1].y < 0.015):
-                    right_clicked = True
 
-                if (left_eye[0].y - left_eye[1].y < 0.015):
+                if (right_eye[0].y - right_eye[1].y < RIGHT_EYE_RATIO):
+                    right_clicked = True
+                if (left_eye[0].y - left_eye[1].y < LEFT_EYE_RATIO):
                     if right_clicked:
                         if frameRead > 8:
                             frameRead = 0
-                            print("Double click")
+                            pyag.doubleClick()
+                            right_clicked = False
                             break
+                    last_blinks.append(True)
                     if frameRead > 8:
                         frameRead = 0
-                        last_blinks.append(True)
-                        print(last_blinks[-20:])
-                        if all(last_blinks[-4:]):
-                            print("Blinnk and hold")
-                        else:
-                            print("Single click")
-                            break
 
+                        if all(last_blinks[-4:]):
+                            blink_and_hold = True
+                            if x < -10:
+                                # Scroll down
+                                pyag.scroll(-10)
+                            elif x > 10:
+                                # Scroll up
+                                pyag.scroll(10)
+
+                        else:
+                            last_blinks.append(True)
+                            frameRead = 0
+                            pyag.click()
+                            break
                 else:
-                    last_blinks = last_blinks[-30:]
                     last_blinks.append(False)
+                if right_clicked:
+                    if frameRead > 8:
+                        pyag.click(button="right")
+                        break
 
                 if abs(prev_x - x) > 0.3 or abs(prev_y - y) > 0.3:
-                    clocX = plocX + (x3 - plocX) / smoothening
-                    clocY = plocY + (y3 - plocY) / smoothening
+                    clocX = plocX + (x3 - plocX) / SMOOTHENING
+                    clocY = plocY + (y3 - plocY) / SMOOTHENING
                     pyag.moveTo(clocX, clocY)  # , tween=pyag.easeOutQuad
                     plocX, plocY = clocX, clocY
                     prev_x, prev_y = x, y
-
+                last_blinks = last_blinks[-30:]
     cv2.imshow('Mouse Control using Head Gestures', image)
     if cv2.waitKey(1) & 0xFF == 27:
         sys.exit()
